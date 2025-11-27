@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Founder Simulator — Enhanced Edition</title>
+
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #0e0e12; color: white; margin: 0; padding: 0; }
+  #game { max-width: 1000px; margin: auto; padding: 20px; }
+
+  h1 { text-align: center; margin: 10px 0 0; }
+
+  /* Card */
+  .card { background: #1a1a20; padding: 20px; border-radius: 14px; margin-top: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.4); }
+
+  /* Buttons */
+  button {
+    background: #6d5dfc;
+    border: none;
+    padding: 14px 18px;
+    color: white;
+    border-radius: 10px;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: 0.25s;
+  }
+  button:hover { background: #5848e5; transform: translateY(-3px); }
+
+  /* Stats */
+  #stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+    gap: 10px;
+  }
+  .stat {
+    width: 32%;
+    background: #22222a;
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 15px;
+  }
+  .progress-bar {
+    height: 18px; /* bigger */
+    background: #333;
+    border-radius: 10px;
+    margin-top: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .fill {
+    height: 100%;
+    background: #6d5dfc;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+  .delta {
+    position: absolute;
+    right: 8px;
+    top: -20px;
+    font-size: 13px;
+    opacity: 0;
+    transition: 0.3s ease;
+  }
+
+  /* Scene Img */
+  #scene-img { width: 100%; height: 220px; object-fit: cover; border-radius: 12px; margin-bottom: 10px; }
+
+  /* Textarea Input */
+  textarea {
+    width: 100%; height: 120px;
+    border-radius: 8px; padding: 10px; resize: none;
+    font-size: 15px; background:#111; color:white; border:1px solid #333;
+  }
+
+  /* Word Library */
+  #library { margin-top: 25px; background:#16161d; padding: 18px; border-radius:10px; }
+  .lib-section { margin-bottom: 12px; }
+  .lib-title { font-weight: bold; color:#6d5dfc; margin-bottom:6px; font-size: 16px; }
+  .keyword {
+    display:inline-block; background:#222; padding:4px 8px;
+    margin:3px; border-radius:6px; font-size: 14px;
+  }
+
+  /* Tutorial Modal */
+  #tutorialModal {
+    position: fixed; inset:0;
+    background: rgba(0,0,0,0.8);
+    display:flex; justify-content:center; align-items:center;
+    z-index: 99;
+  }
+  #tutorialBox {
+    width: 90%; max-width: 600px;
+    background:#1a1a20; padding: 25px;
+    border-radius: 15px; text-align:left;
+    box-shadow: 0 0 25px rgba(0,0,0,0.6);
+  }
+  #tutorialBox h2 { margin-top:0; }
+</style>
+</head>
+
+<body>
+<div id="game">
+  <h1>Founder Simulator — Enhanced Edition</h1>
+
+  <img id="scene-img" src="" alt="Scene" />
+
+  <div class="card">
+    <h2 id="title">Loading...</h2>
+    <p id="context" style="color:#9e9ea6; font-size:14px; margin-top:-5px;"></p>
+    <p id="text"></p>
+    <div id="feedback"></div>
+    <div id="input-area"></div>
+    <div id="choices"></div>
+  </div>
+
+  <!-- Stats -->
+  <div id="stats">
+    <div class="stat">Trust
+      <div class="progress-bar">
+        <div id="trustFill" class="fill"></div>
+        <div id="trustDelta" class="delta"></div>
+      </div>
+    </div>
+
+    <div class="stat">Followers
+      <div class="progress-bar">
+        <div id="followFill" class="fill"></div>
+        <div id="followDelta" class="delta"></div>
+      </div>
+    </div>
+
+    <div class="stat">Engagement
+      <div class="progress-bar">
+        <div id="engFill" class="fill"></div>
+        <div id="engDelta" class="delta"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Word Library -->
+  <div id="library" class="card">
+    <h3>Word Library</h3>
+
+    <div class="lib-section">
+      <div class="lib-title">Authentic (Good)</div><div id="lib-auth"></div>
+    </div>
+
+    <div class="lib-section">
+      <div class="lib-title">Helpful (Good)</div><div id="lib-help"></div>
+    </div>
+
+    <div class="lib-section">
+      <div class="lib-title">Gratitude (Good)</div><div id="lib-grat"></div>
+    </div>
+
+    <div class="lib-section">
+      <div class="lib-title">Hype (Mixed)</div><div id="lib-hype"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Tutorial Modal -->
+<div id="tutorialModal">
+  <div id="tutorialBox">
+    <h2>Welcome to Founder Simulator 🚀</h2>
+    <p>This game simulates building an audience as a startup founder.  
+    Your goal is to grow: <strong>Trust</strong>, <strong>Followers</strong>, and <strong>Engagement</strong>.</p>
+
+    <h3>How It Works</h3>
+    <ul>
+      <li>You will face scenarios and write posts or make choices.</li>
+      <li>Your wording affects your stats — positively or negatively.</li>
+      <li>Crisis events require careful responses.</li>
+      <li>Your final score is based on all three stats.</li>
+    </ul>
+
+    <h3>Word System</h3>
+    <p>Certain keywords influence outcomes. You can see all categories in the Word Library below the game.</p>
+
+    <h3>Example</h3>
+    <p>“Feeling grateful for this journey, happy to share what we learned.”  
+    → Trust ↑ + Engagement ↑</p>
+
+    <button onclick="closeTutorial()">Start Game</button>
+  </div>
+</div>
+
+<script>
+/* --------------------------
+    STATE
+---------------------------*/
+let state = {
+  trust: 10,
+  followers: 50,
+  engagement: 20,
+  phase: 0,
+  lastPost: ""
+};
+
+/* --------------------------
+    UI Updates
+---------------------------*/
+function animateDelta(id, amount) {
+  const el = document.getElementById(id);
+  if (amount === 0) return;
+  el.style.opacity = 1;
+  el.style.color = amount > 0 ? "#7dff7d" : "#ff6b6b";
+  el.textContent = (amount > 0 ? "+" : "") + amount;
+
+  setTimeout(() => { el.style.opacity = 0; }, 1200);
+}
+
+function updateStats(t = 0, f = 0, e = 0) {
+  animateDelta("trustDelta", t);
+  animateDelta("followDelta", f);
+  animateDelta("engDelta", e);
+
+  document.getElementById("trustFill").style.width = Math.min(state.trust, 100) + "%";
+  document.getElementById("followFill").style.width = Math.min(state.followers / 20, 100) + "%";
+  document.getElementById("engFill").style.width = Math.min(state.engagement, 100) + "%";
+}
+
+/* --------------------------
+    WORD LIBRARY
+---------------------------*/
+const wordBank = {
+  authentic:["authentic","real","story","learning","humble","journey","mission","behind","truth","reflection"],
+  hype:["viral","insane","crazy","massive","unbelievable","huge","legendary","exploding"],
+  negative:["hate","stupid","trash","idiot","worst","toxic","fake","lies"],
+  helpful:["tips","guide","advice","help","support","learning","share","teach"],
+  gratitude:["thank","grateful","appreciate","gratitude","blessed"]
+};
+
+function loadLibrary(){
+  const sections={ auth:"lib-auth", help:"lib-help", grat:"lib-grat", hype:"lib-hype", neg:"lib-neg" };
+  Object.entries(wordBank).forEach(([k,arr])=>{
+    const id = sections[k.substring(0,4)] || sections[k];
+    if(!id) return;
+    document.getElementById(id).innerHTML = arr.map(w=>`<span class='keyword'>${w}</span>`).join("");
+  });
+}
+loadLibrary();
+
+/* --------------------------
+    POST SCORING SYSTEM
+---------------------------*/
+function scorePost(txt){
+  txt = txt.toLowerCase();
+  let t=0,f=0,e=0;
+  let good=[], bad=[];
+
+  function check(arr, effect, label){
+    arr.forEach(w=>{
+      if(txt.includes(w)){
+        effect(w);
+        (label==="bad"?bad:good).push(w);
+      }
+    });
+  }
+
+  check(wordBank.authentic, w=>{t+=12;e+=10;}, "good");
+  check(wordBank.helpful, w=>{t+=5;e+=18;f+=25;}, "good");
+  check(wordBank.gratitude, w=>{t+=10;e+=6;}, "good");
+  check(wordBank.hype, w=>{f+=250;t-=8;}, "good");
+  check(wordBank.negative, w=>{t-=20;e-=15;}, "bad");
+
+  if(txt.length>150){ t+=10; e+=10; f+=60; }
+  if(txt.length<20){ e-=10; }
+
+  return {trust:t, followers:f, engagement:e, goodWords:good, badWords:bad};
+}
+
+/* --------------------------
+    SCENES (same as your old game)
+---------------------------*/
+const scenes = [
+  { img:"https://images.unsplash.com/photo-1485827404703-89b55fcc595e", title:"Chapter 1 — The Beginning",
+    context:"Your entrepreneurial journey starts here.",
+    text:"You wake up with a dream...",
+    choices:[{text:"Start", next:1}] },
+
+  { img:"https://images.unsplash.com/photo-1515378791036-0648a3ef77b2",
+    title:"Your First Post",
+    context:"Set the tone for your personal brand.",
+    text:"Write your first post.",
+    input:true, next:2 },
+
+  { img:"https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
+    title:"Reactions",
+    context:"The audience responds.",
+    dynamic:true, next:3 },
+
+  { img:"https://images.unsplash.com/photo-1485217988980-11786ced9454",
+    title:"Networking",
+    context:"You attend a startup meetup.",
+    text:"Choose your approach.",
+    choices:[
+      {text:"Listen", next:4, trust:10},
+      {text:"Hustle aggressively", next:4, followers:200, trust:-5}
+    ]},
+
+  { img:"https://images.unsplash.com/photo-1522199710521-72d69614c702",
+    title:"Continue", text:"Results.", context:"",
+    choices:[{text:"Next", next:5}] },
+
+  { img:"https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    title:"Crisis",
+    context:"Rumors spread about your startup.",
+    text:"Respond calmly and clearly.",
+    input:true, next:6 },
+
+  { img:"https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6",
+    title:"Aftermath",
+    context:"The crisis settles.",
+    dynamic:true, next:7 },
+
+  /* NEW SCENES */
+  { img:"https://images.unsplash.com/photo-1526948128573-703ee1aeb6fa",
+    title:"Launch Day",
+    context:"Your product goes live today.",
+    text:"Write your launch announcement.",
+    input:true, next:8 },
+
+  { img:"https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    title:"Launch Impact",
+    context:"Users react to the launch.",
+    dynamic:true, next:9 },
+
+  { img:"https://images.unsplash.com/photo-1521737604893-d14cc237f11d",
+    title:"Press Contact",
+    context:"A tech journalist reaches out.",
+    text:"Reply to the journalist.",
+    input:true, next:10 },
+
+  { img:"https://images.unsplash.com/photo-1551434678-e076c223a692",
+    title:"Press Outcome",
+    context:"Your quote appears in the article.",
+    dynamic:true, next:11 },
+
+  { img:"https://images.unsplash.com/photo-1515169067865-5387e44e9c98",
+    title:"First Hire",
+    context:"You need help building the product.",
+    text:"What role do you hire first?",
+    choices:[
+      {text:"Engineer", next:12, trust:5, followers:30},
+      {text:"Designer", next:12, engagement:10},
+      {text:"Marketer", next:12, followers:200, trust:-5}
+    ]
+  },
+
+  { img:"https://images.unsplash.com/photo-1518773553398-650c184e0bb3",
+    title:"Major Outage",
+    context:"A critical feature breaks.",
+    text:"Write your public response.",
+    input:true,
+    next:13 },
+
+  { img:"https://images.unsplash.com/photo-1485217988980-11786ced9454",
+    title:"Crisis Fallout",
+    context:"Users react to your message.",
+    dynamic:true,
+    next:14 },
+
+  { img:"https://images.unsplash.com/photo-1506765515384-028b60a970df",
+    title:"Growth Strategy",
+    context:"You must pick a major platform.",
+    text:"Choose your scaling strategy.",
+    choices:[
+      {text:"Go all-in on TikTok", next:15, followers:400, trust:-5},
+      {text:"Double down on LinkedIn", next:15, trust:10, engagement:15}
+    ]
+  },
+
+  { img:"https://images.unsplash.com/photo-1521737604893-d14cc237f11d",
+    title:"Ending",
+    context:"Here are your final stats.",
+    text:()=>`Trust: ${state.trust}\nFollowers: ${state.followers}\nEngagement: ${state.engagement}`,
+    choices:[{text:"Restart", next:0, reset:true}] }
+];
+
+/* --------------------------
+    RENDER
+---------------------------*/
+function render(id){
+  const sc=scenes[id];
+  state.phase=id;
+
+  document.getElementById("scene-img").src=sc.img;
+  document.getElementById("title").innerText=sc.title;
+  document.getElementById("context").innerText=sc.context || "";
+  document.getElementById("text").innerText=typeof sc.text=="function"?sc.text():sc.text;
+  document.getElementById("feedback").innerHTML="";
+  document.getElementById("input-area").innerHTML="";
+  document.getElementById("choices").innerHTML="";
+
+  if(sc.input){
+    const ta=document.createElement("textarea");
+    const btn=document.createElement("button"); btn.innerText="Post";
+    btn.onclick=()=>{ state.lastPost=ta.value; render(sc.next); };
+    document.getElementById("input-area").appendChild(ta);
+    document.getElementById("input-area").appendChild(btn);
+    return;
+  }
+
+  if(sc.dynamic){
+    const r = scorePost(state.lastPost);
+
+    state.trust+=r.trust;
+    state.followers+=r.followers;
+    state.engagement+=r.engagement;
+
+    updateStats(r.trust, r.followers, r.engagement);
+
+    document.getElementById("feedback").innerHTML =
+      `<p><strong>Good words:</strong> ${r.goodWords.join(", ")||"None"}</p>
+       <p><strong>Bad words:</strong> ${r.badWords.join(", ")||"None"}</p>`;
+
+    document.getElementById("text").innerText =
+      `Your post resulted in:\nTrust ${r.trust}, Followers ${r.followers}, Engagement ${r.engagement}`;
+
+    const btn=document.createElement("button");
+    btn.innerText="Continue";
+    btn.onclick=()=>render(sc.next);
+    document.getElementById("choices").appendChild(btn);
+    return;
+  }
+
+  sc.choices.forEach(c=>{
+    const btn=document.createElement("button"); btn.innerText=c.text;
+    btn.onclick=()=>{
+      if(c.reset) state={trust:10,followers:50,engagement:20,phase:0,lastPost:""};
+
+      if(c.trust) state.trust+=c.trust;
+      if(c.followers) state.followers+=c.followers;
+      if(c.engagement) state.engagement+=c.engagement;
+
+      updateStats(c.trust||0, c.followers||0, c.engagement||0);
+      render(c.next);
+    };
+    document.getElementById("choices").appendChild(btn);
+  });
+}
+
+updateStats();
+render(0);
+
+/* --------------------------
+    TUTORIAL
+---------------------------*/
+function closeTutorial(){
+  document.getElementById("tutorialModal").style.display="none";
+}
+</script>
+
+</body>
+</html>
